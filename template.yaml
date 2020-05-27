@@ -1,0 +1,190 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  mms-sam
+  
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: hello-world/
+      Handler: app.lambdaHandler
+      Runtime: nodejs10.x
+      Events:
+        HelloWorld:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /hello
+            Method: get
+  
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Dev
+      Cors: "'*'"
+
+  mms-GetDojo:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: services/dojo/GetDojo.handler
+      Runtime: nodejs12.x
+      CodeUri: .
+      Description: ''
+      MemorySize: 1024
+      Timeout: 6
+      Role: 'arn:aws:iam::066165406558:role/NZKFLambda'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: '/dojo/{id}'
+            Method: GET
+            RestApiId:
+              Ref: ApiGatewayApi
+      Tags:
+        STAGE: dev
+
+  mms-GetKendoProfile:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: services/member/GetKendoProfile.handler
+      Runtime: nodejs12.x
+      CodeUri: .
+      Description: ''
+      MemorySize: 1024
+      Timeout: 6
+      Role: 'arn:aws:iam::066165406558:role/NZKFLambda'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: '/member/{id}/kendo/{kendoid}'
+            Method: GET
+            RestApiId:
+              Ref: ApiGatewayApi
+      Tags:
+        STAGE: dev
+
+  mms-GetAllDojos:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: services/dojo/GetAllDojos.handler
+      Runtime: nodejs12.x
+      CodeUri: .
+      Description: ''
+      MemorySize: 1024
+      Timeout: 6
+      Role: 'arn:aws:iam::066165406558:role/NZKFLambda'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /dojo
+            Method: GET
+            RestApiId:
+              Ref: ApiGatewayApi
+      Tags:
+        STAGE: dev
+
+  mmss-GetMember:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: services/member/GetMember.handler
+      Runtime: nodejs12.x
+      CodeUri: .
+      Description: ''
+      MemorySize: 1024
+      Timeout: 6
+      Role: 'arn:aws:iam::066165406558:role/NZKFLambda'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: '/member/{id}'
+            Method: GET
+            RestApiId:
+              Ref: ApiGatewayApi
+      Tags:
+        STAGE: dev
+
+  mms-EditDojo:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: services/dojo/EditDojo.handler
+      Runtime: nodejs12.x
+      CodeUri: .
+      Description: ''
+      MemorySize: 1024
+      Timeout: 6
+      Role: 'arn:aws:iam::066165406558:role/NZKFLambda'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /dojo
+            Method: PUT
+            RestApiId:
+              Ref: ApiGatewayApi
+      Tags:
+        STAGE: dev
+
+  mms-CreateKendoProfile:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: services/member/CreateKendo.handler
+      Runtime: nodejs12.x
+      CodeUri: .
+      Description: ''
+      MemorySize: 1024
+      Timeout: 6
+      Role: 'arn:aws:iam::066165406558:role/NZKFLambda'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: '/member/{id}/kendo'
+            Method: POST
+            RestApiId:
+              Ref: ApiGatewayApi
+      Tags:
+        STAGE: dev
+
+  mms-CreateDojo:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: services/dojo/CreateDojo.handler
+      Runtime: nodejs12.x
+      CodeUri: .
+      Description: ''
+      MemorySize: 1024
+      Timeout: 6
+      Role: 'arn:aws:iam::066165406558:role/NZKFLambda'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /dojo
+            Method: POST
+            RestApiId:
+              Ref: ApiGatewayApi
+      Tags:
+        STAGE: dev
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  HelloWorldApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+  HelloWorldFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt HelloWorldFunction.Arn
+  HelloWorldFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt HelloWorldFunctionRole.Arn

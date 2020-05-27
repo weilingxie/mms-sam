@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../../mms/frontend"
+		},
+		{
+			"name": "mms-sam",
+			"path": ".."
+		}
+	],
+	"settings": {}
+}
