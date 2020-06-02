@@ -1,8 +1,8 @@
 'use strict';
 const AWS = require('aws-sdk');
+const documentClient = new AWS.DynamoDB.DocumentClient();
 
-exports.handler = async (event, context) => {
-    const documentClient = new AWS.DynamoDB.DocumentClient();
+exports.handler = async (event, context) => {    
     
     let responseBody = "";
     let statusCode = 0;
