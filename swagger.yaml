@@ -1,0 +1,520 @@
+swagger: '2.0'
+info:
+  description: |
+    This is the membership management system server.  You can find 
+    out more about Swagger at 
+    [http://swagger.io](http://swagger.io) or on 
+    [irc.freenode.net, #swagger](http://swagger.io/irc/).
+  version: 1.0.0
+  title: Membership Management System
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: sqlnever@gmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+# host: memberdojo.swagger.io
+# basePath: /v2
+tags:
+- name: dojo
+  description: Everything about your Members
+  externalDocs:
+    description: Find out more
+    url: http://swagger.io
+- name: member
+  description: Operations about dojo
+  externalDocs:
+    description: Find out more about dojo
+    url: http://swagger.io
+# schemes:
+# - https
+paths:
+  /member:
+    post:
+      tags:
+      - member
+      summary: Register a new member
+      operationId: addMember
+      consumes:
+      - application/json
+      - application/xml
+      produces:
+      - application/json
+      - application/xml
+      parameters:
+      - in: body
+        name: body
+        description: Register a new member
+        required: true
+        schema:
+          $ref: '#/definitions/Member'
+      responses:
+        405:
+          description: Invalid input
+      security:
+      - mms_auth:
+        - write:members
+        - read:members
+  
+  /member/login:
+    post:
+      tags:
+      - member
+      summary: Logs member into the system
+      operationId: loginMember
+      produces:
+      - application/json
+      - application/xml
+      parameters:
+      - name: username
+        in: query
+        description: The user name for login
+        required: true
+        type: string
+      - name: password
+        in: query
+        description: The password for login in clear text
+        required: true
+        type: string
+      responses:
+        200:
+          description: successful operation
+          schema:
+            type: string
+          headers:
+            X-Rate-Limit:
+              type: integer
+              format: int32
+              description: calls per hour allowed by the member
+            X-Expires-After:
+              type: string
+              format: date-time
+              description: date in UTC when token expires
+        400:
+          description: Invalid username/password supplied
+          
+  /member/logout:
+    get:
+      tags:
+      - member
+      summary: Logs out current logged in member session
+      operationId: logoutMember
+      produces:
+      - application/json
+      - application/xml
+      parameters: []
+      responses:
+        default:
+          description: successful operation
+ 
+  /member/{memberId}:
+    get:
+      tags:
+      - member
+      summary: Find member by ID
+      description: Returns a single member
+      operationId: getMemberById
+      produces:
+      - application/json
+      - application/xml
+      parameters:
+      - name: memberId
+        in: path
+        description: ID of member to return
+        required: true
+        type: integer
+        format: int64
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Member'
+        400:
+          description: Invalid ID supplied
+        404:
+          description: Member not found
+      security:
+      - api_key: []
+    post:
+      tags:
+      - member
+      summary: Updates a member with form data
+      operationId: updateMemberWithForm
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      - application/xml
+      parameters:
+      - name: memberId
+        in: path
+        description: ID of member that needs to be updated
+        required: true
+        type: integer
+        format: int64
+      - name: name
+        in: formData
+        description: Updated name of the member
+        required: false
+        type: string
+      - name: status
+        in: formData
+        description: Updated status of the member
+        required: false
+        type: string
+      responses:
+        405:
+          description: Invalid input
+      security:
+      - mms_auth:
+        - write:members
+        - read:members
+    delete:
+      tags:
+      - member
+      summary: Deletes a member
+      operationId: deleteMember
+      produces:
+      - application/json
+      - application/xml
+      parameters:
+      - name: api_key
+        in: header
+        required: false
+        type: string
+      - name: memberId
+        in: path
+        description: Member id to delete
+        required: true
+        type: integer
+        format: int64
+      responses:
+        400:
+          description: Invalid ID supplied
+        404:
+          description: Member not found
+      security:
+      - mms_auth:
+        - write:members
+        - read:members
+
+  /member/{memberId}/uploadImage:
+    post:
+      tags:
+      - member
+      summary: uploads an image
+      operationId: uploadFile
+      consumes:
+      - multipart/form-data
+      produces:
+      - application/json
+      parameters:
+      - name: memberId
+        in: path
+        description: ID of member to update
+        required: true
+        type: integer
+        format: int64
+      - name: additionalMetadata
+        in: formData
+        description: Additional data to pass to server
+        required: false
+        type: string
+      - name: file
+        in: formData
+        description: file to upload
+        required: false
+        type: file
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/ApiResponse'
+      security:
+      - mms_auth:
+        - write:members
+        - read:members
+
+  /member/{memberId}/{martialArtType}:
+    post:
+      tags:
+      - member
+      summary: Add martial art profile
+      operationId: addMAProfile
+      consumes:
+      - multipart/form-data
+      produces:
+      - application/json
+      parameters:
+      - name: memberId
+        in: path
+        description: ID of member to update
+        required: true
+        type: string
+      - name: martialArtType
+        in: path
+        description: Martial Art Type, includes Kendo, Laido, Jodo and 
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: Updated Martial Art Profile object
+        required: true
+        schema:
+          $ref: '#/definitions/martialArt'
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/ApiResponse'
+      security:
+      - mms_auth:
+        - write:members
+        - read:members
+    put:
+      tags:
+      - member
+      summary: Updated martial art profile
+      operationId: updateMAProfile
+      produces:
+      - application/json
+      - application/xml
+      parameters:
+      - name: memberId
+        in: path
+        description: nID of member to update
+        required: true
+        type: string
+      - name: martialArtType
+        in: path
+        description: Martial Art Type, includes Kendo, Laido, Jodo and 
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: Updated Martial Art Profile object
+        required: true
+        schema:
+          $ref: '#/definitions/martialArt'
+      responses:
+        400:
+          description: Invalid member supplied
+        404:
+          description: Member not found
+    delete:
+      tags:
+      - member
+      summary: Delete Martial Art Profile
+      description: This can only be done by the logged in member.
+      operationId: deleteMartialArt
+      produces:
+      - application/json
+      - application/xml
+      parameters:
+      - name: memberId
+        in: path
+        description: nID of member to update
+        required: true
+        type: string
+      - name: martialArtType
+        in: path
+        description: Martial Art Type, includes Kendo, Laido, Jodo and 
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: Updated Martial Art Profile object
+        required: true
+        schema:
+          $ref: '#/definitions/martialArt'
+      responses:
+        400:
+          description: Invalid username supplied
+        404:
+          description: Member not found
+  
+  /dojo:
+    post:
+      tags:
+      - dojo
+      summary: Create dojo
+      description: This can only be done by the logged in member.
+      operationId: createDojo
+      produces:
+      - application/json
+      - application/xml
+      parameters:
+      - in: body
+        name: body
+        description: Created dojo object
+        required: true
+        schema:
+          $ref: '#/definitions/Dojo'
+      responses:
+        default:
+          description: successful operation
+  
+ 
+  /dojo/{dojoId}:
+    get:
+      tags:
+      - dojo
+      summary: Get dojo by dojoId
+      operationId: getDojoById
+      produces:
+      - application/json
+      - application/xml
+      parameters:
+      - name: dojoId
+        in: path
+        description: The Id that needs to be fetched.
+        required: true
+        type: string
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Dojo'
+        400:
+          description: Invalid dojoId supplied
+        404:
+          description: Dojo not found
+    put:
+      tags:
+      - dojo
+      summary: Updated dojo
+      description: This can only be done by the logged in dojo owner or admin.
+      operationId: updateDojo
+      produces:
+      - application/json
+      - application/xml
+      parameters:
+      - name: dojoId
+        in: path
+        description: The Id that needs to be fetched.
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: Updated dojo object
+        required: true
+        schema:
+          $ref: '#/definitions/Dojo'
+      responses:
+        400:
+          description: Invalid dojo supplied
+        404:
+          description: Dojo not found
+    delete:
+      tags:
+      - dojo
+      summary: Delete dojo
+      description: This can only be done by the logged in dojo owner or admin.
+      operationId: deleteDojo
+      produces:
+      - application/json
+      - application/xml
+      parameters:
+      - name: dojoId
+        in: path
+        description: The Id that needs to be fetched.
+        required: true
+        type: string
+      responses:
+        400:
+          description: Invalid dojoId supplied
+        404:
+          description: Dojo not found
+securityDefinitions:
+  mms_auth:
+    type: oauth2
+    authorizationUrl: http://memberdojo.swagger.io/oauth/dialog
+    flow: implicit
+    scopes:
+      write:members: modify members in your account
+      read:members: read your members
+  api_key:
+    type: apiKey
+    name: api_key
+    in: header
+definitions:
+  Dojo:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      username:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      userStatus:
+        type: integer
+        format: int32
+        description: User Status
+    xml:
+      name: Dojo
+  Member:
+    type: object
+    required:
+    - name
+    - photoUrls
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+        example: doggie
+      photoUrls:
+        type: array
+        xml:
+          name: photoUrl
+          wrapped: true
+        items:
+          type: string
+      status:
+        type: string
+        description: member status in the dojo
+        enum:
+        - available
+        - pending
+        - sold
+    xml:
+      name: Member
+  ApiResponse:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      type:
+        type: string
+      message:
+        type: string
+  martialArt:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      type:
+        type: string
+      message:
+        type: string
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+# Added by API Auto Mocking Plugin
+host: virtserver.swaggerhub.com
+basePath: /NZKendoFederation/mms/1.0.0
+schemes:
+ - https
